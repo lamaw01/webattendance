@@ -18,6 +18,7 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> {
   String appVersion = '1.0.0';
+  final searchController = TextEditingController();
 
   @override
   void initState() {
@@ -40,7 +41,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     }
 
     final dateFormat = DateFormat().add_yMEd().add_Hms();
-    final searchController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               width: 2.5,
             ),
             Text(
-              appVersion,
+              'v$appVersion',
               style: const TextStyle(fontSize: 12.0),
             ),
           ],
@@ -60,7 +60,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: SizedBox(
-              width: 250.0,
+              width: 125.0,
               height: 50.0,
               child: Center(
                 child: TextField(
@@ -68,7 +68,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   style: const TextStyle(),
                   controller: searchController,
                   cursorColor: Colors.black,
-                  onSubmitted: (value) {
+                  onChanged: (value) {
                     final dropDownValue =
                         ref.read(dropDownProvider.notifier).state;
                     ref
@@ -77,7 +77,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             searchInput: value, eventId: dropDownValue.eventId);
                   },
                   decoration: const InputDecoration(
-                    hintText: 'Search..',
+                    hintText: 'Search name/id..',
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12.0),
                     focusColor: Colors.black,
