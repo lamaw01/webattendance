@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 import '../model/event_log_model.dart';
 import '../model/event_model.dart';
@@ -28,7 +29,7 @@ class DioService {
 
   Future<List<EventLogModel>> getLastEventLog() async {
     Response response = await _dio.get('/get_last_event_log.php');
-    // debugPrint(response.data.toString());
+    debugPrint(response.data.toString());
     return eventLogModelFromJson(json.encode(response.data));
   }
 
@@ -47,5 +48,13 @@ class DioService {
     });
     // debugPrint(response.data.toString());
     return eventLogModelFromJson(json.encode(response.data));
+  }
+
+  Future<void> deleteLog({required int id, required String employeeId}) async {
+    Response response = await _dio.post('/delete_log.php', data: {
+      "id": id,
+      "employee_id": employeeId,
+    });
+    debugPrint(response.data.toString());
   }
 }

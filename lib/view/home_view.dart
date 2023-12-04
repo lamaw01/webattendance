@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../data/delete_log_riverpod.dart';
 import '../data/event_dropdown_provider.dart';
 import '../data/event_log_riverpod.dart';
 import '../data/event_riverpod.dart';
@@ -29,9 +31,58 @@ class _HomeViewState extends ConsumerState<HomeView> {
     });
   }
 
+  void deleteLogDialog(EventLogModel model) async {
+    final controller = TextEditingController();
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Log'),
+          content: SizedBox(
+            // width: 300.0,
+            child: PinCodeTextField(
+              cursorColor: Colors.black,
+              appContext: context,
+              controller: controller,
+              length: 4,
+              obscureText: false,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (controller.text == "1223") {
+                  await ref.read(
+                    deleteLogFutureProvider(DeleteLogArg(
+                            id: model.id, employeeId: model.employeeId))
+                        .future,
+                  );
+                  await ref
+                      .read(eventLogStateNotifierProvider.notifier)
+                      .getLastEventLog();
+                }
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const String title = 'UC-1 Event Attendance';
+    const String title = 'UC-1 Attendance';
 
     final events = ref.watch(eventFutureProvider);
     final eventLogs = ref.watch(eventLogStateNotifierProvider);
@@ -170,6 +221,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                           trailing: Text(
                               dateFormat.format(eventLogs[index].timeStamp)),
                           visualDensity: VisualDensity.comfortable,
+                          onLongPress: () async {
+                            deleteLogDialog(eventLogs[index]);
+                          },
                         ),
                       );
                     }),
