@@ -46,7 +46,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
               appContext: context,
               controller: controller,
               length: 4,
-              obscureText: false,
+              obscureText: true,
+              obscuringCharacter: '*',
             ),
           ),
           actions: [
@@ -91,7 +92,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       return '${eventLogModel.lastName}, ${eventLogModel.firstName} ${eventLogModel.middleName}';
     }
 
-    final dateFormat = DateFormat().add_yMEd().add_Hms();
+    final dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
     return Scaffold(
       appBar: AppBar(
@@ -207,29 +208,41 @@ class _HomeViewState extends ConsumerState<HomeView> {
               Expanded(
                 child: SizedBox(
                   width: 600.0,
-                  child: ListView.builder(
-                    itemCount: eventLogs.length,
-                    itemBuilder: ((context, index) {
-                      return Card(
-                        child: ListTile(
-                          // leading: Text(eventLogs[index].eventName),
-                          title: Text(
-                            fullName(eventLogs[index]),
-                            maxLines: 1,
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      await ref
+                          .read(eventLogStateNotifierProvider.notifier)
+                          .getLastEventLog();
+                    },
+                    child: ListView.builder(
+                      itemCount: eventLogs.length,
+                      itemBuilder: ((context, index) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                              fullName(eventLogs[index]),
+                              maxLines: 2,
+                            ),
+                            subtitle: Text(eventLogs[index].employeeId),
+                            trailing: Text(
+                                dateFormat.format(eventLogs[index].timeStamp)),
+                            visualDensity: VisualDensity.comfortable,
+                            onLongPress: () {
+                              deleteLogDialog(eventLogs[index]);
+                            },
                           ),
-                          subtitle: Text(eventLogs[index].employeeId),
-                          trailing: Text(
-                              dateFormat.format(eventLogs[index].timeStamp)),
-                          visualDensity: VisualDensity.comfortable,
-                          onLongPress: () async {
-                            deleteLogDialog(eventLogs[index]);
-                          },
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(height: 10.0),
+              SizedBox(
+                height: 20.0,
+                child: Text('Total: ${eventLogs.length}'),
+              ),
+              const SizedBox(height: 5.0),
             ],
           ),
         ),
