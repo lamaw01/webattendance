@@ -29,7 +29,7 @@ class DioService {
 
   Future<List<EventLogModel>> getLastEventLog() async {
     Response response = await _dio.get('/get_last_event_log.php');
-    debugPrint(response.data.toString());
+    // debugPrint(response.data.toString());
     return eventLogModelFromJson(json.encode(response.data));
   }
 

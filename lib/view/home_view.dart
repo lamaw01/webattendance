@@ -1,3 +1,4 @@
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +22,7 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView> {
   String appVersion = '1.0.0';
   final searchController = TextEditingController();
+  final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
   @override
   void initState() {
@@ -70,6 +72,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       .getLastEventLog();
                 }
                 if (mounted) {
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 }
               },
@@ -81,18 +84,142 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
+  void downloadExcel(List<EventLogModel> eventLogs, EventModel eventModel) {
+    try {
+      final excel = Excel.createExcel();
+      Sheet sheetObject = excel['Sheet1'];
+
+      final cellStyle = CellStyle(
+        backgroundColorHex: '#dddddd',
+        fontFamily: getFontFamily(FontFamily.Calibri),
+        horizontalAlign: HorizontalAlign.Center,
+        fontSize: 12,
+        bold: true,
+      );
+
+      final column1 = sheetObject.cell(CellIndex.indexByString('A1'));
+      column1.value = const TextCellValue('#');
+      column1.cellStyle = cellStyle;
+
+      final column2 = sheetObject.cell(CellIndex.indexByString('B1'));
+      column2.value = const TextCellValue('QR ID');
+      column2.cellStyle = cellStyle;
+
+      final column3 = sheetObject.cell(CellIndex.indexByString('C1'));
+      column3.value = const TextCellValue('Name');
+      column3.cellStyle = cellStyle;
+
+      final column4 = sheetObject.cell(CellIndex.indexByString('D1'));
+      column4.value = const TextCellValue('Company');
+      column4.cellStyle = cellStyle;
+
+      final column5 = sheetObject.cell(CellIndex.indexByString('E1'));
+      column5.value = const TextCellValue('Timestamp');
+      column5.cellStyle = cellStyle;
+
+      // var cell = worksheet.cell(CellIndex.indexByColumnRow(0, 0));
+      // cell.value = IntCellValue(1);
+      // cell.cellStyle = CellStyle(numberFormat: NumFormat.defaultNumeric);
+
+      sheetObject.setColumnWidth(0, 7.0);
+      sheetObject.setColumnWidth(1, 15.0);
+      sheetObject.setColumnWidth(2, 30.0);
+      sheetObject.setColumnWidth(3, 25.0);
+      sheetObject.setColumnWidth(4, 18.0);
+
+      int counter = 0;
+      for (int i = 0; i < eventLogs.length; i++) {
+        counter = counter + 1;
+        String companies = '';
+        for (var company in eventLogs[i].company) {
+          companies = '$companies ${company.companyName}';
+        }
+        List<CellValue> dataList = [
+          IntCellValue(counter),
+          TextCellValue(eventLogs[i].employeeId),
+          TextCellValue(fullName(eventLogs[i])),
+          TextCellValue(companies),
+          DateTimeCellValue.fromDateTime(eventLogs[i].timeStamp)
+        ];
+        sheetObject.appendRow(dataList);
+
+        sheetObject.updateCell(
+          CellIndex.indexByColumnRow(
+            columnIndex: 0,
+            rowIndex: counter,
+          ),
+          IntCellValue(counter),
+          cellStyle: CellStyle(
+            numberFormat: NumFormat.defaultNumeric,
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          ),
+        );
+        sheetObject.updateCell(
+          CellIndex.indexByColumnRow(
+            columnIndex: 1,
+            rowIndex: counter,
+          ),
+          TextCellValue(eventLogs[i].employeeId),
+          cellStyle: CellStyle(
+            numberFormat: NumFormat.standard_0,
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          ),
+        );
+        sheetObject.updateCell(
+          CellIndex.indexByColumnRow(
+            columnIndex: 2,
+            rowIndex: counter,
+          ),
+          TextCellValue(fullName(eventLogs[i])),
+          cellStyle: CellStyle(
+            numberFormat: NumFormat.standard_0,
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          ),
+        );
+        sheetObject.updateCell(
+          CellIndex.indexByColumnRow(
+            columnIndex: 3,
+            rowIndex: counter,
+          ),
+          TextCellValue(companies),
+          cellStyle: CellStyle(
+            numberFormat: NumFormat.standard_0,
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          ),
+        );
+        sheetObject.updateCell(
+          CellIndex.indexByColumnRow(
+            columnIndex: 4,
+            rowIndex: counter,
+          ),
+          DateTimeCellValue.fromDateTime(eventLogs[i].timeStamp),
+          cellStyle: CellStyle(
+            numberFormat: NumFormat.defaultDateTime,
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          ),
+        );
+      }
+      excel.save(fileName: '${eventModel.eventName}.xlsx');
+    } catch (e) {
+      debugPrint('downloadExcel $e');
+    }
+  }
+
+  String fullName(EventLogModel eventLogModel) {
+    return '${eventLogModel.lastName}, ${eventLogModel.firstName} ${eventLogModel.middleName}';
+  }
+
   @override
   Widget build(BuildContext context) {
     const String title = 'UC-1 Attendance';
 
     final events = ref.watch(eventFutureProvider);
     final eventLogs = ref.watch(eventLogStateNotifierProvider);
-
-    String fullName(EventLogModel eventLogModel) {
-      return '${eventLogModel.lastName}, ${eventLogModel.firstName} ${eventLogModel.middleName}';
-    }
-
-    final dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
     return Scaffold(
       appBar: AppBar(
@@ -219,11 +346,31 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       itemBuilder: ((context, index) {
                         return Card(
                           child: ListTile(
+                            leading: Text(
+                              eventLogs[index].employeeId,
+                              style: const TextStyle(fontSize: 12.0),
+                            ),
                             title: Text(
                               fullName(eventLogs[index]),
                               maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 14.0),
                             ),
-                            subtitle: Text(eventLogs[index].employeeId),
+                            subtitle: Row(
+                              children: [
+                                for (var company
+                                    in eventLogs[index].company) ...[
+                                  Text(
+                                    company.companyName,
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 13.0,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5.0),
+                                ],
+                              ],
+                            ),
                             trailing: Text(
                                 dateFormat.format(eventLogs[index].timeStamp)),
                             visualDensity: VisualDensity.comfortable,
@@ -238,9 +385,28 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
               ),
               const SizedBox(height: 10.0),
-              SizedBox(
-                height: 20.0,
-                child: Text('Total: ${eventLogs.length}'),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 20.0,
+                    child: Text('Total: ${eventLogs.length}'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final dropDownValue =
+                          ref.read(dropDownProvider.notifier).state;
+                      downloadExcel(eventLogs, dropDownValue);
+                    },
+                    child: const Text(
+                      'Download Excel',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 5.0),
             ],

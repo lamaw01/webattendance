@@ -19,6 +19,7 @@ class EventLogModel {
   String middleName;
   int eventId;
   String eventName;
+  List<Company> company;
   DateTime timeStamp;
 
   EventLogModel({
@@ -29,6 +30,7 @@ class EventLogModel {
     required this.middleName,
     required this.eventId,
     required this.eventName,
+    required this.company,
     required this.timeStamp,
   });
 
@@ -40,6 +42,8 @@ class EventLogModel {
         middleName: json["middle_name"],
         eventId: json["event_id"],
         eventName: json["event_name"],
+        company:
+            List<Company>.from(json["company"].map((x) => Company.fromJson(x))),
         timeStamp: DateTime.parse(json["time_stamp"]),
       );
 
@@ -51,6 +55,23 @@ class EventLogModel {
         "middle_name": middleName,
         "event_id": eventId,
         "event_name": eventName,
+        "company": List<dynamic>.from(company.map((x) => x.toJson())),
         "time_stamp": timeStamp.toIso8601String(),
+      };
+}
+
+class Company {
+  String companyName;
+
+  Company({
+    required this.companyName,
+  });
+
+  factory Company.fromJson(Map<String, dynamic> json) => Company(
+        companyName: json["company_name"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "company_name": companyName,
       };
 }
