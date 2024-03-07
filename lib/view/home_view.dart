@@ -27,9 +27,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   void initState() {
     super.initState();
-    ref.read(eventLogStateNotifierProvider.notifier).getLastEventLog();
-    ref.read(packageInfoFutureProvider.future).then((value) {
-      appVersion = value.version;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ref.read(packageInfoFutureProvider.future).then((value) {
+        appVersion = value.version;
+      });
+      await ref.read(eventLogStateNotifierProvider.notifier).getLastEventLog();
     });
   }
 

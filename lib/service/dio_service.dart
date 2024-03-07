@@ -12,7 +12,7 @@ class DioService {
   final _dio = Dio(
     BaseOptions(
       baseUrl: '$_serverUrl/attendance_web_api',
-      connectTimeout: const Duration(seconds: 5),
+      connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: <String, String>{
         'Accept': '*/*',
