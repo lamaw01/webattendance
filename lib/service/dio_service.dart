@@ -7,11 +7,21 @@ import '../model/event_log_model.dart';
 import '../model/event_model.dart';
 
 class DioService {
-  static const String _serverUrl = 'http://103.62.153.74:53000';
+  static String currentUri = Uri.base.toString();
+  static String isSecured = currentUri.substring(4, 5);
+
+  static const String _serverUrlHttp = 'http://103.62.153.74:53000/';
+  String get serverUrlHttp => _serverUrlHttps;
+
+  static const String _serverUrlHttps = 'https://konek.parasat.tv:50443/dtr/';
+  String get serverUrlHttps => _serverUrlHttps;
+
+  static final String _url =
+      isSecured == 's' ? _serverUrlHttps : _serverUrlHttp;
 
   final _dio = Dio(
     BaseOptions(
-      baseUrl: '$_serverUrl/attendance_web_api',
+      baseUrl: '${_url}attendance_web_api',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: <String, String>{
