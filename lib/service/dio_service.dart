@@ -11,7 +11,7 @@ class DioService {
   static String isSecured = currentUri.substring(4, 5);
 
   static const String _serverUrlHttp = 'http://103.62.153.74:53000/';
-  String get serverUrlHttp => _serverUrlHttps;
+  String get serverUrlHttp => _serverUrlHttp;
 
   static const String _serverUrlHttps = 'https://konek.parasat.tv:50443/dtr/';
   String get serverUrlHttps => _serverUrlHttps;
